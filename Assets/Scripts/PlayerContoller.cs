@@ -10,7 +10,9 @@ public enum PlayerState
     
     Pickup,
 
-    inventory
+    inventory,
+
+    Attack
 }
 
 public class PlayerContoller : MonoBehaviour
