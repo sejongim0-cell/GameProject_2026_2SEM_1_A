@@ -1,110 +1,122 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.Rendering.Universal;
+
 
 public class PlayerPickup : MonoBehaviour
 {
-    [Header("Á÷Á¢ ¿¬°á")]
-    [SerializeField] private Animator animator;
-    [SerializeField] private PlayerController playerController;
-    [SerializeField] private InteractionUI interactionUI; //
+    [Header("ì§ì ‘ ì—°ê²°")]
+    [SerializeField]private Animator animator;
+    [SerializeField]private PlayerContoller contoller;
+    [SerializeField] private InteractionUi interactionUi;
 
-    [Header("¾ÆÀÌÅÛ Å½»ö")]
-    [SerializeField] private float detectionRadius = 2f;
+    [Header("ì•„ì´í…œ íƒ‘ìƒ‰")]
+    [SerializeField]private float detectionRadius = 2f;
 
-    [Header("Áİ±â ¸ğ¼Ç")]
-    [SerializeField] private float pickupDuration = 1.2f;
-    [SerializeField] private float pickupMoment = 0.55f;
+    [Header("ì¤ê¸° ëª¨ì…˜")]
+    [SerializeField]private float pickupDuration = 1.2f;
+    [SerializeField]private float pickupMoment = 0.55f;
 
-    private PickupItem targetItem;
-    private Door targetDoor;     //
-    private NPC targetNPC;       //
+    private PickUpItem targetItem;
+    private Door targetDoor;
+    private NPC targetNPC;
+
     private bool isPickingUp;
+    private string itemName;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (isPickingUp) return;
+        if(isPickingUp)
+        {
+            return;
+        }
 
-        //Player ÁÖº¯¿¡¼­ °¡Àå °¡±î¿î ¾ÆÀÌÅÛÀ» Ã£´Â´Ù.
         targetItem = FindClosestItem();
-        //Player ÁÖº¯¿¡¼­ °¡Àå °¡±î¿î ¹®À» Ã£´Â´Ù.
-        targetDoor = FindClosestDoor(); //
-        //Player ÁÖº¯¿¡¼­ °¡Àå °¡±î¿î NPC¸¦ Ã£´Â´Ù.
-        targetNPC = FindClosestNPC();   //
+        targetDoor = FindClosestDoor();
+        targetNPC = FindClosestNPC();
 
         ShowGuide();
 
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null) return;
 
-        if (targetItem == null && targetDoor == null && targetNPC == null) return;
+
+        Keyboard keyboard = Keyboard.current;
+
+        if(keyboard == null)
+        {
+            return;
+        }
+
+        if (targetItem == null && targetDoor == null && targetNPC == null)
+        {
+            return;
+        }
 
         if (keyboard.eKey.wasPressedThisFrame)
         {
-            Interact(); //E Å°·Î ÀÎÅÍ·¢¼Ç ÇÑ´Ù.
+            interact();
+        }
+
+
+    }
+
+    private void interact()
+    {
+        if(targetItem != null)
+        {
+            StartCoroutine(PickupAnimation());
+        }
+        else if(targetDoor != null)
+        {
+            targetDoor.interact();
+        }
+        else if(targetNPC != null)
+        {
+            interactionUi.ShowDialogue(targetNPC.GetNPCName(), targetNPC.GetMessage());
         }
     }
 
-    private void ShowGuide() //
+    private PickUpItem FindClosestItem()
     {
-        if (targetItem != null)
-        {
-            interactionUI.ShowGuide("[E] " + targetItem.GetItemName() + " Áİ±â"); //
-        }
-        else if (targetDoor != null)
-        {
-            interactionUI.ShowGuide(targetDoor.GetGuideText()); //
-        }
-        else if (targetNPC != null)
-        {
-            interactionUI.ShowGuide(targetNPC.GetGuideText()); //
-        }
-        else
-        {
-            interactionUI.HideGuide(); //
-        }
-    }
-
-    private PickupItem FindClosestItem()
-    {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide);
-        PickupItem closestItem = null;
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide); //êµ¬ì²´ ì¶©ëŒì²´
+        PickUpItem closestItem = null;
         float closestDistance = Mathf.Infinity;
 
-        foreach (Collider itemCollider in colliders)
+        foreach(Collider itemCollider in colliders) //êµ¬ì²´ì— ë“¤ì–´ì˜¨ ëª¨ë“ ê±¸ ê²€ì‚¬
         {
-            PickupItem item = itemCollider.GetComponentInParent<PickupItem>();
+            PickUpItem item = itemCollider.GetComponentInParent<PickUpItem>();  //ì»´í¬ë„ŒíŠ¸ê°€ PickupItem ê²€ì‚¬
 
             if (item == null) continue;
 
             float distance = Vector3.Distance(transform.position, item.transform.position);
 
-            if (distance < closestDistance)
+            if(distance < closestDistance)
             {
                 closestDistance = distance;
                 closestItem = item;
             }
-        }
 
+        }
         return closestItem;
     }
 
-    private Door FindClosestDoor() //
+    private Door FindClosestDoor()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide); // ±¸Ã¼ÀÇ Ãæµ¹Ã¼¸¦ ¸¸µç´Ù.
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide); //êµ¬ì²´ ì¶©ëŒì²´
         Door closestDoor = null;
         float closestDistance = Mathf.Infinity;
 
-        foreach (Collider targetCollider in colliders) // Ãæµ¹ ±¸Ã¼¿¡ µé¾î¿Â ¸ğµç°ÍÀ» °Ë»ç
+        foreach (Collider targetCollider in colliders) //êµ¬ì²´ì— ë“¤ì–´ì˜¨ ëª¨ë“ ê±¸ ê²€ì‚¬
         {
-            Door door = targetCollider.GetComponentInParent<Door>(); // ÄÄÆ÷³ÍÆ®°¡ Door¸¦ °Ë»ç
+            Door door = targetCollider.GetComponentInParent<Door>();  //ì»´í¬ë„ŒíŠ¸ê°€ Door ê²€ì‚¬
 
             if (door == null) continue;
 
@@ -115,20 +127,20 @@ public class PlayerPickup : MonoBehaviour
                 closestDistance = distance;
                 closestDoor = door;
             }
-        }
 
+        }
         return closestDoor;
     }
 
-    private NPC FindClosestNPC() //
+    private NPC FindClosestNPC()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide); // ±¸Ã¼ÀÇ Ãæµ¹Ã¼¸¦ ¸¸µç´Ù.
-        NPC closestNPC = null;
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide); //êµ¬ì²´ ì¶©ëŒì²´
+        NPC closestNpc = null;
         float closestDistance = Mathf.Infinity;
 
-        foreach (Collider targetCollider in colliders) // Ãæµ¹ ±¸Ã¼¿¡ µé¾î¿Â ¸ğµç°ÍÀ» °Ë»ç
+        foreach (Collider targetCollider in colliders) //êµ¬ì²´ì— ë“¤ì–´ì˜¨ ëª¨ë“ ê±¸ ê²€ì‚¬
         {
-            NPC npc = targetCollider.GetComponentInParent<NPC>(); // ÄÄÆ÷³ÍÆ®°¡ npc¸¦ °Ë»ç
+            NPC npc = targetCollider.GetComponentInParent<NPC>();  //ì»´í¬ë„ŒíŠ¸ê°€ Door ê²€ì‚¬
 
             if (npc == null) continue;
 
@@ -137,63 +149,76 @@ public class PlayerPickup : MonoBehaviour
             if (distance < closestDistance)
             {
                 closestDistance = distance;
-                closestNPC = npc;
+                closestNpc = npc;
             }
-        }
 
-        return closestNPC;
+        }
+        return closestNpc;
     }
 
     private IEnumerator PickupAnimation()
     {
         isPickingUp = true;
 
-        interactionUI.HideGuide();
+        interactionUi.HideGuide();
 
-        PickupItem itemToCollect = targetItem;
+        PickUpItem itemToCollect = targetItem;
 
         Vector3 itemDirection = itemToCollect.transform.position - transform.position;
         itemDirection.y = 0;
 
-        if (itemDirection.sqrMagnitude > 0.0001f)
+        if(itemDirection.sqrMagnitude > 0.0001f)
         {
             transform.rotation = Quaternion.LookRotation(itemDirection);
         }
 
-        playerController.ChangeState(PlayerState.Pickup);
+        contoller.ChangeState(PlayerState.Pickup);
+        // ì „í™˜ì„  ì—†ì´ PickUp01 ìƒíƒœë¡œ ì´ë™
         animator.CrossFade("PickUp01", 0.1f);
+
         yield return new WaitForSeconds(pickupMoment);
 
-        if (itemToCollect != null)
+        if(itemToCollect != null)
         {
             itemToCollect.Collect();
         }
 
         yield return new WaitForSeconds(pickupDuration - pickupMoment);
 
+        //Blend Treeë¡œ ëŒì•„ê°„ë‹¤
         animator.CrossFade("Blend Tree", 0.1f);
-        playerController.ChangeState(PlayerState.Normal);
+
+        contoller.ChangeState(PlayerState.Normal);
 
         targetItem = null;
         targetDoor = null;
-        targetNPC = null;
+        targetNPC = null; 
         isPickingUp = false;
-
     }
 
-    private void Interact() //ÀÎÅÍ·¢¼Ç ÇÔ¼ö
+    private void ShowGuide()
     {
-        if (targetItem != null)
+        if(targetItem != null)
         {
-            StartCoroutine(PickupAnimation()); //±âÁ¸ ÇÈ¾÷
+            interactionUi.ShowGuide("[E]" + targetItem.GetItemName() + "ì¤ê¸°");
         }
-        else if (targetDoor != null)
+        else if(targetDoor != null)
         {
-            targetDoor.Interact(); //¹® ¿ÀÇÂ
+            interactionUi.ShowGuide(targetDoor.GetGuideText());
         }
-        else if (targetNPC != null)
+        else if(targetNPC != null)
         {
-            interactionUI.ShowDialogue(targetNPC.GetNPCName(), targetNPC.GetMessage()); //´ÙÀÌ¾ó·Î±× ¿ÀÇÂ
+            interactionUi.ShowGuide(targetNPC.GetGuideText());
+        }
+        else
+        {
+            interactionUi.HideGuide();
         }
     }
+
+    public string GetItemName()
+    {
+        return itemName;
+    }
+
 }

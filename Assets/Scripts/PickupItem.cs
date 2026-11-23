@@ -1,17 +1,19 @@
 using UnityEngine;
 
-public class PickupItem : MonoBehaviour
+public class PickUpItem : MonoBehaviour
 {
-    [Header("¾ÆÀÌÅÛ Á¤º¸")]
-    [SerializeField] private string itemName = "¾ÆÀÌÅÛ";
+    [Header("ì•„ì´í…œ ì •ë³´")]
+
+    [SerializeField] private string itemName = "ì•„ì´í…œ";
+
     [SerializeField] private int amount = 1;
 
     [SerializeField] QuestManager questManager;
 
     [TextArea]
-    [SerializeField] private string description = "¾ÆÀÌÅÛ ¼³¸íÀÌ ¾ø½À´Ï´Ù. ";
+    [SerializeField] private string description = "ì•„ì´í…œ ì„¤ëª…ì´ ì—†ìŠµë‹ˆë‹¤.";
 
-    [Header("È­¸é ¿¬Ãâ")]
+    [Header("í™”ë©´ ì—°ì¶œ")]
     [SerializeField] private float rotationSpeed = 60f;
     [SerializeField] private float floatingHeight = 0.15f;
     [SerializeField] private float floatingSpeed = 2f;
@@ -20,48 +22,56 @@ public class PickupItem : MonoBehaviour
 
     private SimpleInventory inventory;
 
+    private AchievementManager achievementManager;
     public void Awake()
     {
         questManager = FindFirstObjectByType<QuestManager>();
         inventory = FindFirstObjectByType<SimpleInventory>();
+        achievementManager = FindFirstObjectByType<AchievementManager>();
     }
 
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         startPosition = transform.position;
     }
 
+    // Update is called once per frame
     void Update()
     {
-        //¾ÆÀÌÅÛÀ» ÃµÃµÈ÷ È¸Àü ½ÃÅ²´Ù.
         transform.Rotate(Vector3.up, rotationSpeed * Time.deltaTime, Space.World);
 
-        //¾ÆÀÌÅÛÀ» À§¾Æ·¡·Î ¿òÁ÷ÀÎ´Ù.
         float y = Mathf.Sin(Time.time * floatingSpeed) * floatingHeight;
         transform.position = startPosition + Vector3.up * y;
     }
 
     public void Collect()
     {
-        if (inventory == null)
+        if(inventory == null)
         {
-            Debug.Log("SimpleInventory¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.Log("SimpleInventory = null");
             return;
         }
 
-        if (inventory.AddItem(itemName, amount, description) == false)
+        if(inventory.Additem(itemName,amount,description) == false)
         {
             return;
         }
 
-        Debug.Log(itemName + " " + amount + "°³ È¹µæ");
-        if (questManager != null)
+        Debug.LogWarning(itemName + " " + amount);
+        if(questManager != null)
         {
             questManager.AddQuestItem(itemName, amount);
         }
 
+        if(achievementManager != null)
+        {
+            achievementManager.itemCollected(amount);
+        }
+
         Destroy(gameObject);
     }
+
     public string GetItemName()
     {
         return itemName;

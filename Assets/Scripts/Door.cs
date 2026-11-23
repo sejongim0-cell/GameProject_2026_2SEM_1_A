@@ -2,19 +2,21 @@ using UnityEngine;
 
 public class Door : MonoBehaviour
 {
-    [SerializeField] private float openAngle = 90f;
-    [SerializeField] private float openSpeed = 3f;
+    [SerializeField]private float openAngle = 90f;
+
+    [SerializeField]private float openSpeed = 3f;
 
     private bool isOpen;
 
-    [SerializeField] private Quaternion closedRotation;
-    [SerializeField] private Quaternion openRotation;
+    [SerializeField]private Quaternion closedRotaiton;
+    [SerializeField]private Quaternion openRoatation;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        closedRotation = transform.localRotation;
-        openRotation = closedRotation * Quaternion.Euler(0, openAngle, 0f);
+        closedRotaiton = transform.localRotation;
+        openRoatation = closedRotaiton * Quaternion.Euler(0,openAngle, 0f);
     }
 
     // Update is called once per frame
@@ -24,24 +26,24 @@ public class Door : MonoBehaviour
 
         if (isOpen)
         {
-            targetRotation = openRotation;
+            targetRotation = openRoatation;
         }
         else
         {
-            targetRotation = closedRotation;
+            targetRotation = closedRotaiton;
         }
 
         transform.localRotation = Quaternion.Lerp(transform.localRotation, targetRotation, openSpeed * Time.deltaTime);
     }
 
-    public void Interact()
+    public void interact()
     {
-        isOpen = !isOpen; // bool 값을 뒤집는다.
+        isOpen = !isOpen;
     }
 
     public string GetGuideText()
     {
-        if (isOpen)
+        if(isOpen)
         {
             return "[E] 문 닫기";
         }

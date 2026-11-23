@@ -17,4 +17,5 @@ public class Quest
 
     [HideInInspector] public int currentAmount;
     [HideInInspector] public QuestState state = QuestState.NotStated;
+
 }

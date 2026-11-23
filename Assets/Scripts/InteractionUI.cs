@@ -1,12 +1,16 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using Unity.VisualScripting;
 
-public class InteractionUI : MonoBehaviour
+public class InteractionUi : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI guideText;
-    [SerializeField] private GameObject dialoguePanel;
+    [SerializeField] private TextMeshProUGUI guiddeText;
+
+    [SerializeField] private GameObject DialoguePanel;
+
     [SerializeField] private TextMeshProUGUI dialogueText;
+
     [SerializeField] private float dialogueDuration = 3.0f;
 
     private Coroutine dialogueRoutine;
@@ -15,44 +19,39 @@ public class InteractionUI : MonoBehaviour
     void Start()
     {
         HideGuide();
-        dialoguePanel.SetActive(false);
+        DialoguePanel.SetActive(false);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ShowGuide(string Message)
     {
-
-    }
-
-    public void ShowGuide(string message)
-    {
-        guideText.gameObject.SetActive(true);
-        guideText.text = message;
+        guiddeText.gameObject.SetActive(true);
+        guiddeText.text = Message;
     }
 
     public void HideGuide()
     {
-        guideText.gameObject.SetActive(false);
+        guiddeText.gameObject.SetActive(false);
     }
 
-    private IEnumerator DialogueRoutine(string npcName, string message)
+    private IEnumerator DialogueRoutine(string name,string Message)
     {
-        dialoguePanel.SetActive(true);
-        dialogueText.text = npcName + "\n" + message;
+        DialoguePanel.SetActive(true);
+        dialogueText.text = name + "\n" + Message;
 
         yield return new WaitForSeconds(dialogueDuration);
 
-        dialoguePanel.SetActive(false);
+        DialoguePanel.SetActive(false);
         dialogueRoutine = null;
     }
 
-    public void ShowDialogue(string npcName, string message)
+    public void ShowDialogue(string Name,string Message)
     {
         if (dialogueRoutine != null)
         {
             StopCoroutine(dialogueRoutine);
         }
 
-        dialogueRoutine = StartCoroutine(DialogueRoutine(npcName, message));
+        dialogueRoutine = StartCoroutine(DialogueRoutine(Name, Message));
     }
+
 }

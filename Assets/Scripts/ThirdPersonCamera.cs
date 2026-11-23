@@ -1,77 +1,81 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class ThirdPersonCamera : MonoBehaviour
 {
-    [Header("µû¶ó°¥ ´ë»ó")]
+    [Header("ë”°ë¼ê°ˆ ëŒ€ìƒ")]
     [SerializeField] private Transform target;
 
-    [Header("Ä«¸Ş¶ó À§Ä¡")]
+    [Header("ì¹´ë©”ë¼ ìœ„ì¹˜")]
     [SerializeField] private float distance = 7f;
     [SerializeField] private float height = 1.5f;
 
-    [Header("¸¶¿ì½º È¸Àü")]
+    [Header("ë§ˆìš°ìŠ¤ íšŒì „")]
     [SerializeField] private float mouseSensitivity = 0.12f;
     [SerializeField] private float minVerticalAngle = -30f;
     [SerializeField] private float maxVerticalAngle = 60f;
 
-    [Header("¸¶¿ì½º ½ºÅ©·Ñ")]
-    [SerializeField] private float zoomSpeed = 1f;
-    [SerializeField] private float minDistance = 2f;
+    [Header("ë§ˆìš°ìŠ¤ ìŠ¤í¬ë¡¤")]
+    [SerializeField] private float zoomSpeed = 1;
+    [SerializeField] private float minDisance = 2f;
     [SerializeField] private float maxDistance = 10f;
 
     private float yaw;
     private float pitch = 15f;
 
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked; //½ÃÀÛ½Ã¿¡ Ä¿¼­¸¦ Lock ÇÑ´Ù.
-        Cursor.visible = false;                   //Ä¿¼­¸¦ ¾Èº¸ÀÌ°Ô ÇÑ´Ù.
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
+    // Update is called once per frame
     void Update()
     {
         Mouse mouse = Mouse.current;
 
-        if (mouse == null)
+        if(mouse == null)
         {
             return;
         }
 
-        //¸¶¿ì½º È¸Àü
         Vector2 mouseDelta = mouse.delta.ReadValue();
 
         yaw += mouseDelta.x * mouseSensitivity;
         pitch -= mouseDelta.y * mouseSensitivity;
-        pitch = Mathf.Clamp(pitch, minVerticalAngle, maxVerticalAngle);
+        pitch = Mathf.Clamp(pitch, minVerticalAngle,maxVerticalAngle);
 
-        //¸¶¿ì½º ÈÙ È®´ë¿Í Ãà¼Ò
         float scroll = mouse.scroll.ReadValue().y;
 
         distance -= scroll * zoomSpeed;
-        distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        distance = Mathf.Clamp(distance, minDisance, maxDistance);
     }
+
+    //LateUpdate
+    //Update í›„ í”„ë ˆì„ë§ˆë‹¤ í•œë²…ì”© í˜¸ì¶œí•¨
+    //Updateì—ì„œ ê°œì‚°í›„ LateUpdateì—ì„œ ì ìš©í•¨
+
 
     private void LateUpdate()
     {
-        if (target == null)
+        if(target == null)
         {
             return;
         }
 
-        //Ä«¸Ş¶ó°¡ ¹Ù¶óº¼ À§Ä¡
         Vector3 lookPoint = target.position + Vector3.up * height;
 
-        //Yaw¿Í pitch¸¦ ½ÇÁ¦ È¸Àü °ªÀ¸·Î º¯È¯
         Quaternion orbitRotation = Quaternion.Euler(pitch, yaw, 0f);
 
-        //È¸Àü ¹æÇâÀ» ±âÁØÀ¸·Î Player µÚÂÊ À§Ä¡ °è»ê
         Vector3 cameraOffset = orbitRotation * new Vector3(0f, 0f, -distance);
 
-        //Player ÁÖº¯ÀÇ °è»êµÈ À§Ä¡·Î ÀÌµ¿
         transform.position = lookPoint + cameraOffset;
 
-        //Player Áß½ÉÀ» ¹Ù¶óº»´Ù.
         transform.LookAt(lookPoint);
     }
+
+
+
 }
